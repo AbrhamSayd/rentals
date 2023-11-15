@@ -1,26 +1,26 @@
 
 <template>
   <header>
-  <div class="card">
-    <Menubar :model="items">
-      <template #item="{ item, props, hasSubmenu }">
-        <router-link v-if="item.route" v-slot="{ href, navigate }" :to="item.route" custom>
-          <a v-ripple :href="href" v-bind="props.action" @click="navigate">
+    <div class="card">
+      <Menubar :model="items">
+        <template #item="{ item, props, hasSubmenu }">
+          <router-link v-if="item.route" v-slot="{ href, navigate }" :to="item.route" custom>
+            <a v-ripple :href="href" v-bind="props.action" @click="navigate">
+              <span :class="item.icon" />
+              <span class="ml-2">{{ item.label }}</span>
+            </a>
+          </router-link>
+          <a v-else v-ripple :href="item.url" :target="item.target" v-bind="props.action">
             <span :class="item.icon" />
             <span class="ml-2">{{ item.label }}</span>
+            <span v-if="hasSubmenu" class="pi pi-fw pi-angle-down ml-2" />
           </a>
-        </router-link>
-        <a v-else v-ripple :href="item.url" :target="item.target" v-bind="props.action">
-          <span :class="item.icon" />
-          <span class="ml-2">{{ item.label }}</span>
-          <span v-if="hasSubmenu" class="pi pi-fw pi-angle-down ml-2" />
-        </a>
-      </template>
-    </Menubar>
-  </div>
+        </template>
+      </Menubar>
+    </div>
   </header>
   <div>
-  <slot/>
+    <slot />
   </div>
 </template>
 
@@ -31,7 +31,7 @@ export default {
       items: [
         {
           label: 'Inicio',
-          icon: 'pi pi-link',
+          icon: 'pi pi-microsoft',
           command: () => {
             this.$router.push('/');
           }
@@ -39,21 +39,21 @@ export default {
         },
         {
           label: 'Departamentos',
-          icon: 'pi pi-link',
+          icon: 'pi pi-home',
           command: () => {
             this.$router.push('/property');
           }
         },
         {
           label: 'Inquilinos',
-          icon: 'pi pi-link',
+          icon: 'pi pi-users',
           command: () => {
             this.$router.push('/tenant');
           }
         },
         {
           label: 'Pagos',
-          icon: 'pi pi-link',
+          icon: 'pi pi-money-bill',
           command: () => {
             this.$router.push('/payments');
           }
