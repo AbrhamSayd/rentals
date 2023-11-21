@@ -12,7 +12,7 @@
       <template #header>
         <div class="flex flex-wrap align-items-center justify-content-between gap-2">
           <span class="text-xl text-900 font-bold">Propiedades</span>
-          <Button type="button" label="Añadir" icon="pi pi-plus" :loading="loading" @click="load" />
+          <Button type="button" label="Añadir" icon="pi pi-plus" :loading="loading" @click="openPopUp()" />
         </div>
       </template>
       <template #grid="slotProps">
@@ -34,7 +34,7 @@
             </div>
             <div class="flex align-items-center justify-content-between">
               <span class="text-2xl font-semibold">Editar</span>
-              <Button icon="pi pi-pencil" rounded></Button>
+              <Button icon="pi pi-pencil" rounded @click="editRent(slotProps.data)"></Button>
             </div>
             <div class="flex align-items-center justify-content-between">
               <span class="text-xl font-medium">Eliminar</span>
@@ -45,16 +45,75 @@
       </template>
     </DataView>
   </div>
+  <Dialog v-model:visible="visible" modal header="Añadir propiedad" :style="{ width: '50rem' }"
+    @update:visible="clearForm" :breakpoints="{ '1199px': '75vw', '575px': '90vw' }">
+    <div class="flex flex-column gap-2">
+      <label for="name">Nombre de la propiedad</label>
+      <InputText id="name" v-model="property.name" />
+    </div>
+    <div class="flex flex-column gap-2">
+      <label for="address">Dirección</label>
+      <InputText id="address" v-model="property.address" />
+    </div>
+    <div class="flex flex-column gap-2">
+      <label for="type">Caracteristicas</label>
+      <Textarea id="type" v-model="property.type" />
+    </div>
+    <Divider type="solid" />
+    <template v-for="(rent, index) in property.rents.slice(0)">
+      <div class="flex flex-column gap-2">
+        <label :for="'type-' + index">Nombre del plan</label>
+        <InputText :id="'type-' + index" v-model="rent.type" aria-describedby="rent-help" />
+        <small id="rent-help" class="p-d-block">El nombre del plan debe ser único, Eg. Mensual, Semanal, Etc..</small>
+      </div>
+      <div class="flex flex-column gap-2">
+        <label :for="'amount-' + index">Renta</label>
+        <InputNumber :id="'amount-' + index" v-model="rent.amount" mode="currency" currency="MXN" locale="es-MX" />
+      </div>
+      <Divider />
+    </template>
+    <Divider />
+    <div class="flex flex-column gap-2">
+      <label for="type">Agregar más rentas</label>
+      <Button icon="pi pi-plus" label="Agregar renta" @click="addRent()" />
+    </div>
+    <template #footer>
+      <div v-if="action == 'add'">
+        <div class="flex justify-content-center flex-wrap">
+          <Button type="submit" icon="pi pi-check" label="Guardar" @click.prevent="onSave($event)" />
+          <Button icon="pi pi-times" label="Cancelar" severity="secondary" style="margin-left: 0.5em"
+            @click="visible = false" />
+        </div>
+      </div>
+      <div v-if="action == 'mod'">
+        <div class="flex justify-content-center flex-wrap">
+          <Button type="submit" icon="pi pi-check" label="Guardar" @click.prevent="onEdit()" />
+          <Button icon="pi pi-times" label="Cancelar" severity="secondary" style="margin-left: 0.5em"
+            @click="visible = false" />
+        </div>
+      </div>
+    </template>
+  </Dialog>
 </template>
 
 <script >
 
+
 export default {
   data() {
     return {
+      property: {
+        _id: '',
+        name: '',
+        address: '',
+        type: '',
+        rents: [],
+      },
       properties: null,
       layout: 'grid',
-      id: null
+      id: null,
+      visible: false,
+      action: 'add'
     }
   },
   mounted() {
@@ -75,7 +134,6 @@ export default {
       const { data, pending, error, refresh } = await useFetch(`http://localhost:3000/property/${this.id}`, {
         method: 'DELETE'
       })
-      refresh()
       this.properties.splice(this.properties.findIndex((property) => property._id === this.id), 1)
     },
     showTemplate(idParam) {
@@ -101,6 +159,53 @@ export default {
           });
         }
       });
+    },
+    openPopUp() {
+      this.visible = true
+
+    },
+    editRent(property) {
+      this.action = 'mod'
+      this.visible = true
+      this.property = property
+    },
+    addRent() {
+      this.property.rents.push({ type: '', amount: 0 });
+    },
+    clearForm() {
+      this.property = {
+        name: '',
+        address: '',
+        type: '',
+        rents: [{ type: '', amount: 0 }],
+      };
+      this.visible = false;
+    },
+    async onSave() {
+      console.log('save button clicked')
+      const { data, pending, error, refresh } = await useFetch(`http://localhost:3000/property`, {
+        method: 'POST',
+        body: JSON.stringify(this.property),
+        onResponse: (response) => {
+          console.log(response)
+          this.properties.push(response)
+        }
+      })
+      this.clearForm()
+
+
+    },
+    async onEdit() {
+      console.log('edit button clicked')
+      const { data, pending, error, refresh } = await useFetch(`http://localhost:3000/property/${this.property._id}`, {
+        method: 'PATCH',
+        body: JSON.stringify(this.property),
+        onResponse: (response) => {
+          console.log(response)
+          this.properties.push(response)
+        }
+      })
+      this.clearForm()
     }
   }
 }

@@ -52,6 +52,13 @@ export default {
           }
         },
         {
+          label: 'Contratos',
+          icon: 'pi pi-file',
+          command: () => {
+            this.$router.push('/leases');
+          }
+        },
+        {
           label: 'Pagos',
           icon: 'pi pi-money-bill',
           command: () => {
